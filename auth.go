@@ -16,8 +16,7 @@ type authError struct {
 	Message string `json:"message"`
 }
 
-type auth struct {
-	baseEndpoint string
+type Auth struct {
 	client       *Client
 }
 
@@ -41,9 +40,9 @@ type User struct {
 }
 
 // SignUp registers the user's email and password to the database.
-func (a *auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, error) {
+func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, error) {
 	reqBody, _ := json.Marshal(credentials)
-	reqURL := fmt.Sprintf("%s/%s/signup", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/signup", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
@@ -71,9 +70,9 @@ type authenticationError struct {
 }
 
 // SignIn enters the user credentials and returns the current user if succeeded.
-func (a *auth) SignIn(ctx context.Context, credentials UserCredentials) (*AuthenticatedDetails, error) {
+func (a *Auth) SignIn(ctx context.Context, credentials UserCredentials) (*AuthenticatedDetails, error) {
 	reqBody, _ := json.Marshal(credentials)
-	reqURL := fmt.Sprintf("%s/%s/token?grant_type=password", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/token?grant_type=password", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
@@ -93,9 +92,9 @@ func (a *auth) SignIn(ctx context.Context, credentials UserCredentials) (*Authen
 }
 
 // SignIn enters the user credentials and returns the current user if succeeded.
-func (a *auth) RefreshUser(ctx context.Context, userToken string, refreshToken string) (*AuthenticatedDetails, error) {
+func (a *Auth) RefreshUser(ctx context.Context, userToken string, refreshToken string) (*AuthenticatedDetails, error) {
 	reqBody, _ := json.Marshal(map[string]string{"refresh_token": refreshToken})
-	reqURL := fmt.Sprintf("%s/%s/token?grant_type=refresh_token", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/token?grant_type=refresh_token", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
@@ -116,9 +115,9 @@ func (a *auth) RefreshUser(ctx context.Context, userToken string, refreshToken s
 }
 
 // SendMagicLink sends a link to a specific e-mail address for passwordless auth.
-func (a *auth) SendMagicLink(ctx context.Context, email string) error {
+func (a *Auth) SendMagicLink(ctx context.Context, email string) error {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
-	reqURL := fmt.Sprintf("%s/%s/magiclink", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/magiclink", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -147,22 +146,22 @@ type ProviderSignInDetails struct {
 }
 
 // SignInWithProvider returns a URL for signing in via OAuth
-func (a *auth) SignInWithProvider(opts ProviderSignInOptions) (*ProviderSignInDetails, error) {
+func (a *Auth) SignInWithProvider(opts ProviderSignInOptions) (*ProviderSignInDetails, error) {
 	params, err := query.Values(opts)
 	if err != nil {
 		return nil, err
 	}
 
 	details := ProviderSignInDetails{
-		URL:      fmt.Sprintf("%s/%s/authorize?%s", a.client.BaseURL, a.baseEndpoint, params.Encode()),
+		URL:      fmt.Sprintf("%s/%s/authorize?%s", a.client.BaseURL, AuthEndpoint, params.Encode()),
 		Provider: opts.Provider,
 	}
 	return &details, nil
 }
 
 // User retrieves the user information based on the given token
-func (a *auth) User(ctx context.Context, userToken string) (*User, error) {
-	reqURL := fmt.Sprintf("%s/%s/user", a.client.BaseURL, a.baseEndpoint)
+func (a *Auth) User(ctx context.Context, userToken string) (*User, error) {
+	reqURL := fmt.Sprintf("%s/%s/user", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
 	if err != nil {
 		return nil, err
@@ -182,9 +181,9 @@ func (a *auth) User(ctx context.Context, userToken string) (*User, error) {
 }
 
 // UpdateUser updates the user information
-func (a *auth) UpdateUser(ctx context.Context, userToken string, updateData map[string]interface{}) (*User, error) {
+func (a *Auth) UpdateUser(ctx context.Context, userToken string, updateData map[string]interface{}) (*User, error) {
 	reqBody, _ := json.Marshal(updateData)
-	reqURL := fmt.Sprintf("%s/%s/user", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/user", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "PUT", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
@@ -206,9 +205,9 @@ func (a *auth) UpdateUser(ctx context.Context, userToken string, updateData map[
 }
 
 // ResetPasswordForEmail sends a password recovery link to the given e-mail address.
-func (a *auth) ResetPasswordForEmail(ctx context.Context, email string) error {
+func (a *Auth) ResetPasswordForEmail(ctx context.Context, email string) error {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
-	reqURL := fmt.Sprintf("%s/%s/recover", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/recover", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -222,8 +221,8 @@ func (a *auth) ResetPasswordForEmail(ctx context.Context, email string) error {
 }
 
 // SignOut revokes the users token and session.
-func (a *auth) SignOut(ctx context.Context, userToken string) error {
-	reqURL := fmt.Sprintf("%s/%s/logout", a.client.BaseURL, a.baseEndpoint)
+func (a *Auth) SignOut(ctx context.Context, userToken string) error {
+	reqURL := fmt.Sprintf("%s/%s/logout", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
 	if err != nil {
 		return err
@@ -239,9 +238,9 @@ func (a *auth) SignOut(ctx context.Context, userToken string) error {
 }
 
 // InviteUserByEmail sends an invite link to the given email. Returns a user.
-func (a *auth) InviteUserByEmail(ctx context.Context, email string) (*User, error) {
+func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, error) {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
-	reqURL := fmt.Sprintf("%s/%s/invite", a.client.BaseURL, a.baseEndpoint)
+	reqURL := fmt.Sprintf("%s/%s/invite", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
