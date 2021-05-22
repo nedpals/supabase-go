@@ -22,8 +22,8 @@ type auth struct {
 }
 
 type UserCredentials struct {
-	email    string
-	password string
+	Email    string
+	Password string
 }
 
 type User struct {
