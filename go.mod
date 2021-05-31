@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/google/go-querystring v1.1.0
-	github.com/supabase/postgrest-go v0.0.0-20210528130344-c54210459fa8
+	github.com/nedpals/postgrest-go v0.1.1-0.20210521115538-ef1669fbb3f0
 )

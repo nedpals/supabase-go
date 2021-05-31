@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	postgrest "github.com/supabase/postgrest-go"
+	postgrest "github.com/nedpals/postgrest-go"
 )
 
 const (
