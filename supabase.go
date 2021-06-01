@@ -34,7 +34,7 @@ func (err *ErrorResponse) Error() string {
 }
 
 // CreateClient creates a new Supabase client
-func CreateClient(baseURL string, supabaseKey string) *Client {
+func CreateClient(baseURL string, supabaseKey string, debug ...bool) *Client {
 	parsedURL, err := url.Parse(fmt.Sprintf("%s/%s/", baseURL, RestEndpoint))
 	if err != nil {
 		panic(err)
@@ -50,6 +50,10 @@ func CreateClient(baseURL string, supabaseKey string) *Client {
 			*parsedURL,
 			postgrest.WithTokenAuth(supabaseKey),
 			func(c postgrest.Client) {
+				// debug parameter is only for postgrest-go for now
+				if len(debug) > 0 {
+					c.Debug = debug[0]
+				}
 				c.Transport.AddHeader("apikey", supabaseKey)
 			},
 		),
