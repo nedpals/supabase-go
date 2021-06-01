@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
-	postgrest "github.com/nedpals/postgrest-go"
+	postgrest "github.com/nedpals/postgrest-go/pkg"
 )
 
 const (
@@ -20,7 +21,7 @@ type Client struct {
 	apiKey     string
 	HTTPClient *http.Client
 	Auth       *Auth
-	DB         *postgrest.Client
+	DB         postgrest.Client
 }
 
 type ErrorResponse struct {
@@ -34,6 +35,10 @@ func (err *ErrorResponse) Error() string {
 
 // CreateClient creates a new Supabase client
 func CreateClient(baseURL string, supabaseKey string) *Client {
+	parsedURL, err := url.Parse(fmt.Sprintf("%s/%s/", baseURL, RestEndpoint))
+	if err != nil {
+		panic(err)
+	}
 	client := &Client{
 		BaseURL: baseURL,
 		apiKey:  supabaseKey,
@@ -42,12 +47,12 @@ func CreateClient(baseURL string, supabaseKey string) *Client {
 			Timeout: time.Minute,
 		},
 		DB: postgrest.NewClient(
-			fmt.Sprintf("%s/%s/", baseURL, RestEndpoint),
-			"",
-			map[string]string{
-				"apikey": supabaseKey,
+			*parsedURL,
+			postgrest.WithTokenAuth(supabaseKey),
+			func(c postgrest.Client) {
+				c.Transport.AddHeader("apikey", supabaseKey)
 			},
-		).TokenAuth(supabaseKey),
+		),
 	}
 	client.Auth.client = client
 	return client
