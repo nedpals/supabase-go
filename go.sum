@@ -8,4 +8,6 @@ github.com/nedpals/postgrest-go v0.1.1 h1:wjBFNcz8v2SjbrfqHaHiCIkNizc3yVW18p2IU1
 github.com/nedpals/postgrest-go v0.1.1/go.mod h1:RGinB2OXsnGLcZMu5avS0U+b9npyZmk+ecK74UDi/xY=
 github.com/nedpals/postgrest-go v0.1.2-0.20210601141012-f1f6337a3fcc h1:+tXiWCvR6WcWwchPNm0+N+jIBSZ4hKySgYM/SwH2SHw=
 github.com/nedpals/postgrest-go v0.1.2-0.20210601141012-f1f6337a3fcc/go.mod h1:RGinB2OXsnGLcZMu5avS0U+b9npyZmk+ecK74UDi/xY=
+github.com/nedpals/postgrest-go v0.1.2-0.20210602022921-3116b45edd6b h1:ysxbPgLiFi3tqZLS/HSP/CRww6s15d65ZaelY9dA4o8=
+github.com/nedpals/postgrest-go v0.1.2-0.20210602022921-3116b45edd6b/go.mod h1:RGinB2OXsnGLcZMu5avS0U+b9npyZmk+ecK74UDi/xY=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
