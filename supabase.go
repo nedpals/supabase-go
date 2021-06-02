@@ -21,7 +21,7 @@ type Client struct {
 	apiKey     string
 	HTTPClient *http.Client
 	Auth       *Auth
-	DB         postgrest.Client
+	DB         *postgrest.Client
 }
 
 type ErrorResponse struct {
