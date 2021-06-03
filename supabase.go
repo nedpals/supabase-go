@@ -49,12 +49,12 @@ func CreateClient(baseURL string, supabaseKey string, debug ...bool) *Client {
 		DB: postgrest.NewClient(
 			*parsedURL,
 			postgrest.WithTokenAuth(supabaseKey),
-			func(c postgrest.Client) {
+			func(c *postgrest.Client) {
 				// debug parameter is only for postgrest-go for now
 				if len(debug) > 0 {
 					c.Debug = debug[0]
 				}
-				c.Transport.AddHeader("apikey", supabaseKey)
+				c.AddHeader("apikey", supabaseKey)
 			},
 		),
 	}
