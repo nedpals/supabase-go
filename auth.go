@@ -43,7 +43,7 @@ type User struct {
 func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, error) {
 	reqBody, _ := json.Marshal(credentials)
 	reqURL := fmt.Sprintf("%s/%s/signup", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ type authenticationError struct {
 func (a *Auth) SignIn(ctx context.Context, credentials UserCredentials) (*AuthenticatedDetails, error) {
 	reqBody, _ := json.Marshal(credentials)
 	reqURL := fmt.Sprintf("%s/%s/token?grant_type=password", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (a *Auth) SignIn(ctx context.Context, credentials UserCredentials) (*Authen
 func (a *Auth) RefreshUser(ctx context.Context, userToken string, refreshToken string) (*AuthenticatedDetails, error) {
 	reqBody, _ := json.Marshal(map[string]string{"refresh_token": refreshToken})
 	reqURL := fmt.Sprintf("%s/%s/token?grant_type=refresh_token", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (a *Auth) RefreshUser(ctx context.Context, userToken string, refreshToken s
 func (a *Auth) SendMagicLink(ctx context.Context, email string) error {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
 	reqURL := fmt.Sprintf("%s/%s/magiclink", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (a *Auth) SignInWithProvider(opts ProviderSignInOptions) (*ProviderSignInDe
 // User retrieves the user information based on the given token
 func (a *Auth) User(ctx context.Context, userToken string) (*User, error) {
 	reqURL := fmt.Sprintf("%s/%s/user", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func (a *Auth) User(ctx context.Context, userToken string) (*User, error) {
 func (a *Auth) UpdateUser(ctx context.Context, userToken string, updateData map[string]interface{}) (*User, error) {
 	reqBody, _ := json.Marshal(updateData)
 	reqURL := fmt.Sprintf("%s/%s/user", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "PUT", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func (a *Auth) UpdateUser(ctx context.Context, userToken string, updateData map[
 func (a *Auth) ResetPasswordForEmail(ctx context.Context, email string) error {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
 	reqURL := fmt.Sprintf("%s/%s/recover", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
@@ -224,7 +224,7 @@ func (a *Auth) ResetPasswordForEmail(ctx context.Context, email string) error {
 // SignOut revokes the users token and session.
 func (a *Auth) SignOut(ctx context.Context, userToken string) error {
 	reqURL := fmt.Sprintf("%s/%s/logout", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, nil)
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func (a *Auth) SignOut(ctx context.Context, userToken string) error {
 func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, error) {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
 	reqURL := fmt.Sprintf("%s/%s/invite", a.client.BaseURL, AuthEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", reqURL, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
