@@ -17,7 +17,7 @@ type authError struct {
 }
 
 type Auth struct {
-	client       *Client
+	client *Client
 }
 
 type UserCredentials struct {
@@ -170,6 +170,7 @@ func (a *Auth) User(ctx context.Context, userToken string) (*User, error) {
 	injectAuthorizationHeader(req, userToken)
 	res := User{}
 	errRes := authError{}
+	req.Header.Set("apikey", a.client.apiKey)
 	hasCustomError, err := a.client.sendCustomRequest(req, &res, &errRes)
 	if err != nil {
 		return nil, err
