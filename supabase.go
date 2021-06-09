@@ -86,10 +86,10 @@ func (c *Client) sendCustomRequest(req *http.Request, successValue interface{}, 
 	if err != nil {
 		return true, err
 	}
-
 	defer res.Body.Close()
 
-	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
+	statusOK := res.StatusCode >= http.StatusOK && res.StatusCode < 300
+	if !statusOK {
 		if err = json.NewDecoder(res.Body).Decode(&errorValue); err == nil {
 			return true, nil
 		}
@@ -97,8 +97,10 @@ func (c *Client) sendCustomRequest(req *http.Request, successValue interface{}, 
 		return true, fmt.Errorf("unknown, status code: %d", res.StatusCode)
 	}
 
-	if err = json.NewDecoder(res.Body).Decode(&successValue); err != nil {
-		return true, err
+	if res.StatusCode != http.StatusNoContent {
+		if err = json.NewDecoder(res.Body).Decode(&successValue); err != nil {
+			return true, err
+		}
 	}
 
 	return false, nil
