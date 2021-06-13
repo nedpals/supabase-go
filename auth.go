@@ -58,6 +58,7 @@ func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, 
 }
 
 type AuthenticatedDetails struct {
+	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
@@ -170,7 +171,6 @@ func (a *Auth) User(ctx context.Context, userToken string) (*User, error) {
 	injectAuthorizationHeader(req, userToken)
 	res := User{}
 	errRes := authError{}
-	req.Header.Set("apikey", a.client.apiKey)
 	hasCustomError, err := a.client.sendCustomRequest(req, &res, &errRes)
 	if err != nil {
 		return nil, err
