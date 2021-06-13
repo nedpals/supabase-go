@@ -68,8 +68,6 @@ func injectAuthorizationHeader(req *http.Request, value string) {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	var errRes ErrorResponse
-
-	req.Header.Set("apikey", c.apiKey)
 	hasCustomError, err := c.sendCustomRequest(req, v, errRes)
 
 	if err != nil {
@@ -82,24 +80,23 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 }
 
 func (c *Client) sendCustomRequest(req *http.Request, successValue interface{}, errorValue interface{}) (bool, error) {
+	req.Header.Set("apikey", c.apiKey)
 	res, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return true, err
 	}
-	defer res.Body.Close()
 
+	defer res.Body.Close()
 	statusOK := res.StatusCode >= http.StatusOK && res.StatusCode < 300
 	if !statusOK {
 		if err = json.NewDecoder(res.Body).Decode(&errorValue); err == nil {
 			return true, nil
 		}
 
-		return true, fmt.Errorf("unknown, status code: %d", res.StatusCode)
-	}
-
-	if res.StatusCode != http.StatusNoContent {
+		return false, fmt.Errorf("unknown, status code: %d", res.StatusCode)
+	} else if res.StatusCode != http.StatusNoContent {
 		if err = json.NewDecoder(res.Body).Decode(&successValue); err != nil {
-			return true, err
+			return false, err
 		}
 	}
 
