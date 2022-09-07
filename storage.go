@@ -1,6 +1,7 @@
 package supabase
 
 import (
+
 	"bufio"
 	"bytes"
 	"context"
@@ -14,6 +15,7 @@ import (
 
 type Storage struct {
 	client *Client
+
 }
 
 // Storage buckets methods
@@ -43,7 +45,6 @@ type storageError struct {
 	Err     string `json:"error"`
 	Message string `json:"message"`
 }
-
 
 
 // CreateBucket creates a new storage bucket
@@ -177,6 +178,7 @@ func (s *Storage) DeleteBucket(ctx context.Context, id string) (*bucketResponse,
 
 	return &res, nil
 }
+
 
 func (s Storage) From(bucketId string) *file {
 	return &file{BucketId: bucketId}
@@ -531,3 +533,4 @@ func (f *file) Download(filePath string) FileResponse {
 func removeEmptyFolder(filePath string) string {
 	return regexp.MustCompile(`\/\/`).ReplaceAllString(filePath, "/")
 }
+
