@@ -341,9 +341,7 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 		    "expiresIn":  expiresIn,
 	})
 	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, 
-								s.client.BaseURL+"/object/sign/"+f.BucketId+"/"+filePath, 
-								bytes.NewBuffer(_json))
+	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/sign/"+f.BucketId+"/"+filePath, bytes.NewBuffer(_json))
 	injectAuthorizationHeader(req, s.client.apiKey)
 	
 	if err != nil {
@@ -370,7 +368,7 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 }
 
 // GetPublicUrl get a public signed url of a file object
-func (f *file) GetPucblicUrl(filePath string) SignedUrlResponse {
+func (f *file) GetPublicUrl(filePath string) SignedUrlResponse {
 	s := &Storage{}
 	var response SignedUrlResponse
 	response.SignedUrl = s.client.BaseURL + "/object/public" + f.BucketId + "/" + filePath
@@ -384,9 +382,7 @@ func (f *file) Remove(filePaths []string) FileResponse {
 		    "prefixex":  filePaths,
 	})
 	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, 
-								s.client.BaseURL+"/object/"+f.BucketId, 
-								bytes.NewBuffer(_json))
+	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/"+f.BucketId, bytes.NewBuffer(_json))
 	injectAuthorizationHeader(req, s.client.apiKey)
 	
 	if err != nil {
@@ -438,10 +434,8 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 
 	_json, _ := json.Marshal(_body)
 	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, 
-								s.client.BaseURL+"/object/list/"+f.BucketId, 
-								bytes.NewBuffer(_json))
-    injectAuthorizationHeader(req, s.client.apiKey)	
+	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/list/"+f.BucketId, bytes.NewBuffer(_json))
+        injectAuthorizationHeader(req, s.client.apiKey)	
 
 	if err != nil {
 		panic(err)
@@ -504,8 +498,7 @@ func (f *file) Download(filePath string) FileResponse {
 	// _json, _ := json.Marshal(map[string]interface{}{
 	// })
 	s := &Storage{}
-	req, err := http.NewRequest(http.MethodGet, 
-								s.client.BaseURL+"/object/"+f.BucketId + "/" + filePath, nil)
+	req, err := http.NewRequest(http.MethodGet, s.client.BaseURL+"/object/"+f.BucketId + "/" + filePath, nil)
 	
 	injectAuthorizationHeader(req, s.client.apiKey)
 	if err != nil {
