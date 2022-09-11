@@ -9,15 +9,15 @@ go get github.com/nedpals/supabase-go
 
 ## Usage
 ```golang
-import supabase "github.com/nedpals/supabase-go"
+import supa "github.com/nedpals/supabase-go"
 
 func main() {
   supabaseUrl := "<SUPABASE-URL>"
   supabaseKey := "<SUPABASE-KEY>"
-  supabaseClient := supabase.CreateClient(supabaseUrl, supabaseKey)
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
 
   // Auth
-  user, err := supabaseClient.Auth.SignIn(supabase.UserCredentials{
+  user, err := supabase.Auth.SignIn(supabase.UserCredentials{
     email: "example@example.com",
     password: "password"
   })
@@ -40,7 +40,7 @@ func main() {
 - [x] Auth support (1)
 - [x] DB support (2)
 - [ ] Realtime
-- [ ] Storage
+- [x] Storage
 - [ ] Testing
 
 (1) - Thin API wrapper. Does not rely on the GoTrue library for simplicity
