@@ -62,6 +62,7 @@ func CreateClient(baseURL string, supabaseKey string, debug ...bool) *Client {
 		),
 	}
 	client.Auth.client = client
+	client.Storage.client = client
 	return client
 }
 

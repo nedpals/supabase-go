@@ -1,21 +1,20 @@
 package supabase
 
 import (
-
 	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"strconv"
-	"fmt"
-	"net/http"
 )
 
 type Storage struct {
 	client *Client
-
 }
 
 // Storage buckets methods
@@ -45,6 +44,8 @@ type storageError struct {
 	Err     string `json:"error"`
 	Message string `json:"message"`
 }
+
+var ErrNotFound = errors.New("file not found")
 
 
 // CreateBucket creates a new storage bucket
@@ -180,15 +181,15 @@ func (s *Storage) DeleteBucket(ctx context.Context, id string) (*bucketResponse,
 }
 
 
-func (s Storage) From(bucketId string) *file {
-	return &file{BucketId: bucketId}
+func (s *Storage) From(bucketId string) *file {
+	return &file{BucketId: bucketId, storage: s}
 }
 
 // Storage Objects methods
 
 type file struct{
 	BucketId string
-	header   http.Header
+	storage  *Storage
 }
 
 type SortBy struct {
@@ -199,6 +200,15 @@ type SortBy struct {
 type FileResponse struct {
 	Key 	string  `json:"key"`
 	Message string  `json:"message"`
+}
+
+type FileErrorResponse struct {
+	Status 	    string  `json:"statusCode"`
+	ShortError 	string  `json:"error"`
+	Message     string  `json:"message"`
+}
+func (err *FileErrorResponse) Error() string {
+	return err.ShortError + ": " + err.Message
 }
 
 type FileSearchOptions struct {
@@ -241,42 +251,38 @@ const (
 )
 
 func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResponse {
-	s := &Storage{}
-	f.header.Set("cache-control", defaultFileCacheControl)
-	f.header.Set("content-type", defaultFileContent)
-	f.header.Set("x-upsert", strconv.FormatBool(defaultFileUpsert))
-
 	body := bufio.NewReader(data)
 	_path := removeEmptyFolder(f.BucketId + "/" + path)
 	client := &http.Client{}
-	
 
 	var (
+		method string
+	 	req *http.Request
 		res *http.Response
 		err error
 	)
 
 	if update {
-		var req *http.Request
-		req, err = http.NewRequest(http.MethodPut, s.client.BaseURL+"/object/"+_path, body)
-		injectAuthorizationHeader(req, s.client.apiKey)
-		if err != nil {
-			panic(err)
-		}
-		res, err = client.Do(req)
-	}else {
-		var req *http.Request
-		req, err = http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/"+_path, body)
-		f.header.Set("content-type", defaultFileContent)
-		injectAuthorizationHeader(req, s.client.apiKey)
-		if err != nil {
-			panic(err)
-		}
-		res, err = client.Do(req)
-		if err != nil {
-			panic(err)
-		}
+		method = http.MethodPut
+	} else {
+		method = http.MethodPost
 	}
+
+	reqURL := fmt.Sprintf("%s/%s/object/%s", f.storage.client.BaseURL, StorageEndpoint, _path)
+	req, err = http.NewRequest(method, reqURL, body)
+	if err != nil {
+		panic(err)
+	}
+
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
+	req.Header.Set("cache-control", defaultFileCacheControl)
+	req.Header.Set("content-type", defaultFileContent)
+	req.Header.Set("x-upsert", strconv.FormatBool(defaultFileUpsert))
+	if !update {
+		req.Header.Set("content-type", defaultFileContent)
+	}
+
+	res, err = client.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -285,6 +291,7 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResp
 	if err != nil {
 		panic(err)
 	}
+
 	var response FileResponse
 	if err = json.Unmarshal(resBody, &response); err != nil {
 		panic(err)
@@ -310,12 +317,15 @@ func (f *file) Move(fromPath string, toPath string) FileResponse {
 		"sourceKey": fromPath,
 		"destintionKey": toPath,
 	})
-	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/move", bytes.NewBuffer(_json))
-	injectAuthorizationHeader(req, s.client.apiKey)
+
+	reqURL := fmt.Sprintf("%s/%s/object/move", f.storage.client.BaseURL, StorageEndpoint)
+	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
 	}
+
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -340,13 +350,15 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 	_json, _ := json.Marshal(map[string]interface{}{
 		    "expiresIn":  expiresIn,
 	})
-	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/sign/"+f.BucketId+"/"+filePath, bytes.NewBuffer(_json))
-	injectAuthorizationHeader(req, s.client.apiKey)
-	
+
+	reqURL := fmt.Sprintf("%s/%s/object/sign/%s/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId, filePath)
+	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
 	}
+
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -362,32 +374,32 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 	if err := json.Unmarshal(body, &response); err != nil {
 		panic(err)
 	}
-	response.SignedUrl = s.client.BaseURL+response.SignedUrl
+	response.SignedUrl = f.storage.client.BaseURL+response.SignedUrl
 
 	return response
 }
 
 // GetPublicUrl get a public signed url of a file object
 func (f *file) GetPublicUrl(filePath string) SignedUrlResponse {
-	s := &Storage{}
 	var response SignedUrlResponse
-	response.SignedUrl = s.client.BaseURL + "/object/public" + f.BucketId + "/" + filePath
-
+	response.SignedUrl = fmt.Sprintf("%s/%s/object/public/%s/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId, filePath)
 	return response
 }
 
 // Remove deletes a file object
 func (f *file) Remove(filePaths []string) FileResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
-		    "prefixex":  filePaths,
+		"prefixex":  filePaths,
 	})
-	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/"+f.BucketId, bytes.NewBuffer(_json))
-	injectAuthorizationHeader(req, s.client.apiKey)
-	
+
+	reqURL := fmt.Sprintf("%s/%s/object/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
+	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
 	}
+
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -433,13 +445,15 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 	}
 
 	_json, _ := json.Marshal(_body)
-	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/list/"+f.BucketId, bytes.NewBuffer(_json))
-        injectAuthorizationHeader(req, s.client.apiKey)	
 
+	reqURL := fmt.Sprintf("%s/%s/object/list/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
+	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
 	}
+
+    injectAuthorizationHeader(req, f.storage.client.apiKey)
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -457,7 +471,6 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 	}
 
 	return response
-
 }
 
 // Copy copies a file object
@@ -467,13 +480,15 @@ func (f *file) Copy(fromPath, toPath string) FileResponse {
 		"sourceKey": fromPath,
 		"destintionKey": toPath,
 	})
-	s := &Storage{}
-	req, err := http.NewRequest(http.MethodPost, s.client.BaseURL+"/object/copy", bytes.NewBuffer(_json))
-	injectAuthorizationHeader(req, s.client.apiKey)
 
+	reqURL := fmt.Sprintf("%s/%s/object/copy", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
+	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
 	}
+
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -493,17 +508,16 @@ func (f *file) Copy(fromPath, toPath string) FileResponse {
 	return response
 }
 
-// Download  retrieves a file object
-func (f *file) Download(filePath string) FileResponse {
-	// _json, _ := json.Marshal(map[string]interface{}{
-	// })
-	s := &Storage{}
-	req, err := http.NewRequest(http.MethodGet, s.client.BaseURL+"/object/"+f.BucketId + "/" + filePath, nil)
-	
-	injectAuthorizationHeader(req, s.client.apiKey)
+// Download  retrieves a file object, if it exists, otherwise return file response
+func (f *file) Download(filePath string) ([]byte, error) {
+	reqURL := fmt.Sprintf("%s/%s/object/authenticated/%s/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId, filePath)
+	req, err := http.NewRequest(http.MethodGet, reqURL, nil)
 	if err != nil {
 		panic(err)
 	}
+	
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -515,12 +529,21 @@ func (f *file) Download(filePath string) FileResponse {
 		panic(err)
 	}
 
-	var response FileResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		panic(err)
+	// when not success, supabase will return json insted of file
+	if res.StatusCode != 200 {
+		var resErr *FileErrorResponse
+		if err := json.Unmarshal(body, &resErr); err != nil {
+			panic(err)
+		}
+
+		if resErr.Status == "404" {
+			return nil, ErrNotFound
+		}
+
+		return nil, resErr
 	}
 
-	return response
+	return body, nil
 }
 
 func removeEmptyFolder(filePath string) string {
