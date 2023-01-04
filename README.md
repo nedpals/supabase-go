@@ -8,7 +8,8 @@ go get github.com/nedpals/supabase-go
 ```
 
 ## Usage
-```golang
+### Authenticate
+```go
 import supa "github.com/nedpals/supabase-go"
 
 func main() {
@@ -16,23 +17,136 @@ func main() {
   supabaseKey := "<SUPABASE-KEY>"
   supabase := supa.CreateClient(supabaseUrl, supabaseKey)
 
-  // Auth
-  user, err := supabase.Auth.SignIn(supabase.UserCredentials{
-    email: "example@example.com",
-    password: "password"
+  ctx := context.Background()
+  user, err := supabase.Auth.SignUp(ctx, supa.UserCredentials{
+    Email:    "example@example.com",
+    Password: "password",
   })
   if err != nil {
     panic(err)
   }
 
-  // DB
-  var results map[string]interface{}
-  err = supabaseClient.DB.From("something").Select("*").Single().Execute(&results)
+  fmt.Println(user)
+}
+```
+
+### Sign-In
+```go
+import supa "github.com/nedpals/supabase-go"
+
+func main() {
+  supabaseUrl := "<SUPABASE-URL>"
+  supabaseKey := "<SUPABASE-KEY>"
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
+
+  ctx := context.Background()
+  user, err := supabase.Auth.SignIn(ctx, supa.UserCredentials{
+    Email:    "example@example.com",
+    Password: "password",
+  })
   if err != nil {
     panic(err)
   }
 
-  fmt.Println(results)
+  fmt.Println(user)
+}
+```
+
+### Insert
+```go
+import supa "github.com/nedpals/supabase-go"
+
+type Country struct {
+  ID      int    `json:"id"`
+  Name    string `json:"name"`
+  Capital string `json:"capital"`
+}
+
+func main() {
+  supabaseUrl := "<SUPABASE-URL>"
+  supabaseKey := "<SUPABASE-KEY>"
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
+
+  row := Country{
+    ID:      5,
+    Name:    "Germany",
+    Capital: "Berlin",
+  }
+
+  var results []Country
+  err := supabase.DB.From("countries").Insert(row).Execute(&results)
+  if err != nil {
+    panic(err)
+  }
+
+  fmt.Println(results) // Inserted rows
+}
+```
+
+### Select
+```go
+import supa "github.com/nedpals/supabase-go"
+
+func main() {
+  supabaseUrl := "<SUPABASE-URL>"
+  supabaseKey := "<SUPABASE-KEY>"
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
+
+  var results map[string]interface{}
+  err := supabase.DB.From("countries").Select("*").Single().Execute(&results)
+  if err != nil {
+    panic(err)
+  }
+
+  fmt.Println(results) // Selected rows
+}
+```
+
+### Update
+```go
+import supa "github.com/nedpals/supabase-go"
+
+type Country struct {
+  Name    string `json:"name"`
+  Capital string `json:"capital"`
+}
+
+func main() {
+  supabaseUrl := "<SUPABASE-URL>"
+  supabaseKey := "<SUPABASE-KEY>"
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
+
+  row := Country{
+    Name:    "France",
+    Capital: "Paris",
+  }
+
+  var results map[string]interface{}
+  err := supabase.DB.From("countries").Update(row).Eq("id", "5").Execute(&results)
+  if err != nil {
+    panic(err)
+  }
+
+  fmt.Println(results) // Updated rows
+}
+```
+
+### Delete
+```go
+import supa "github.com/nedpals/supabase-go"
+
+func main() {
+  supabaseUrl := "<SUPABASE-URL>"
+  supabaseKey := "<SUPABASE-KEY>"
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
+
+  var results map[string]interface{}
+  err := supabase.DB.From("countries").Delete().Eq("name", "France").Execute(&results)
+  if err != nil {
+    panic(err)
+  }
+
+  fmt.Println(results) // Empty - nothing returned from delete
 }
 ```
 
