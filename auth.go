@@ -23,6 +23,7 @@ type Auth struct {
 type UserCredentials struct {
 	Email    string
 	Password string
+	Data     interface{}
 }
 
 type User struct {
