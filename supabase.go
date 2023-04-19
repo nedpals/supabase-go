@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	AuthEndpoint = "auth/v1"
-	RestEndpoint = "rest/v1"
+	AuthEndpoint    = "auth/v1"
+	RestEndpoint    = "rest/v1"
 	StorageEndpoint = "storage/v1"
 )
 
@@ -22,7 +22,7 @@ type Client struct {
 	apiKey     string
 	HTTPClient *http.Client
 	Auth       *Auth
-	Storage	   *Storage
+	Storage    *Storage
 	DB         *postgrest.Client
 }
 
@@ -72,7 +72,7 @@ func injectAuthorizationHeader(req *http.Request, value string) {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	var errRes ErrorResponse
-	hasCustomError, err := c.sendCustomRequest(req, v, errRes)
+	hasCustomError, err := c.sendCustomRequest(req, v, &errRes)
 
 	if err != nil {
 		return err
