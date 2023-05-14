@@ -63,16 +63,22 @@ func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, 
 }
 
 type AuthenticatedDetails struct {
-	AccessToken  string `json:"access_token"`
-	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	User         User   `json:"user"`
+	AccessToken          string `json:"access_token"`
+	TokenType            string `json:"token_type"`
+	ExpiresIn            int    `json:"expires_in"`
+	RefreshToken         string `json:"refresh_token"`
+	User                 User   `json:"user"`
+	ProviderToken        string `json:"provider_token"`
+	ProviderRefreshToken string `json:"provider_refresh_token"`
 }
 
 type authenticationError struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
+}
+
+type exchangeError struct {
+	Message string `json:"msg"`
 }
 
 // SignIn enters the user credentials and returns the current user if succeeded.
@@ -136,12 +142,12 @@ func (a *Auth) ExchangeCode(ctx context.Context, opts ExchangeCodeOpts) (*Authen
 
 	req.Header.Set("Content-Type", "application/json")
 	res := AuthenticatedDetails{}
-	errRes := authenticationError{}
+	errRes := exchangeError{}
 	hasCustomError, err := a.client.sendCustomRequest(req, &res, &errRes)
 	if err != nil {
 		return nil, err
 	} else if hasCustomError {
-		return nil, errors.New(fmt.Sprintf("%s: %s", errRes.Error, errRes.ErrorDescription))
+		return nil, errors.New(errRes.Message)
 	}
 
 	return &res, err
@@ -331,9 +337,10 @@ func generatePKCEParams() (*PKCEParams, error) {
 		return nil, err
 	}
 
-	verifier := base64.URLEncoding.EncodeToString(data)
+	// RawURLEncoding since "code challenge can only contain alphanumeric characters, hyphens, periods, underscores and tildes"
+	verifier := base64.RawURLEncoding.EncodeToString(data)
 	sha := sha256.Sum256([]byte(verifier))
-	challenge := base64.URLEncoding.EncodeToString(sha[:])
+	challenge := base64.RawURLEncoding.EncodeToString(sha[:])
 	return &PKCEParams{
 		Challenge:       challenge,
 		ChallengeMethod: "S256",
