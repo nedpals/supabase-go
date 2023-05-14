@@ -3,9 +3,13 @@ package supabase
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -59,16 +63,22 @@ func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, 
 }
 
 type AuthenticatedDetails struct {
-	AccessToken  string `json:"access_token"`
-	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	User         User   `json:"user"`
+	AccessToken          string `json:"access_token"`
+	TokenType            string `json:"token_type"`
+	ExpiresIn            int    `json:"expires_in"`
+	RefreshToken         string `json:"refresh_token"`
+	User                 User   `json:"user"`
+	ProviderToken        string `json:"provider_token"`
+	ProviderRefreshToken string `json:"provider_refresh_token"`
 }
 
 type authenticationError struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
+}
+
+type exchangeError struct {
+	Message string `json:"msg"`
 }
 
 // SignIn enters the user credentials and returns the current user if succeeded.
@@ -116,6 +126,33 @@ func (a *Auth) RefreshUser(ctx context.Context, userToken string, refreshToken s
 	return &res, nil
 }
 
+type ExchangeCodeOpts struct {
+	AuthCode     string `json:"auth_code"`
+	CodeVerifier string `json:"code_verifier"`
+}
+
+// ExchangeCode takes an auth code and PCKE verifier and returns the current user if succeeded.
+func (a *Auth) ExchangeCode(ctx context.Context, opts ExchangeCodeOpts) (*AuthenticatedDetails, error) {
+	reqBody, _ := json.Marshal(opts)
+	reqURL := fmt.Sprintf("%s/%s/token?grant_type=pkce", a.client.BaseURL, AuthEndpoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	res := AuthenticatedDetails{}
+	errRes := exchangeError{}
+	hasCustomError, err := a.client.sendCustomRequest(req, &res, &errRes)
+	if err != nil {
+		return nil, err
+	} else if hasCustomError {
+		return nil, errors.New(errRes.Message)
+	}
+
+	return &res, err
+}
+
 // SendMagicLink sends a link to a specific e-mail address for passwordless auth.
 func (a *Auth) SendMagicLink(ctx context.Context, email string) error {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
@@ -140,11 +177,20 @@ type ProviderSignInOptions struct {
 	Provider   string   `url:"provider"`
 	RedirectTo string   `url:"redirect_to"`
 	Scopes     []string `url:"scopes"`
+	FlowType   FlowType
 }
 
+type FlowType string
+
+const (
+	Implicit FlowType = "implicit"
+	PKCE     FlowType = "pkce"
+)
+
 type ProviderSignInDetails struct {
-	URL      string `json:"url"`
-	Provider string `json:"provider"`
+	URL          string `json:"url"`
+	Provider     string `json:"provider"`
+	CodeVerifier string `json:"code_verifier"`
 }
 
 // SignInWithProvider returns a URL for signing in via OAuth
@@ -154,10 +200,30 @@ func (a *Auth) SignInWithProvider(opts ProviderSignInOptions) (*ProviderSignInDe
 		return nil, err
 	}
 
+	if opts.FlowType == PKCE {
+		p, err := generatePKCEParams()
+		if err != nil {
+			return nil, err
+		}
+
+		params.Add("code_challenge", p.Challenge)
+		params.Add("code_challenge_method", p.ChallengeMethod)
+
+		details := ProviderSignInDetails{
+			URL:          fmt.Sprintf("%s/%s/authorize?%s", a.client.BaseURL, AuthEndpoint, params.Encode()),
+			Provider:     opts.Provider,
+			CodeVerifier: p.Verifier,
+		}
+
+		return &details, nil
+	}
+
+	// Implicit flow
 	details := ProviderSignInDetails{
 		URL:      fmt.Sprintf("%s/%s/authorize?%s", a.client.BaseURL, AuthEndpoint, params.Encode()),
 		Provider: opts.Provider,
 	}
+
 	return &details, nil
 }
 
@@ -256,4 +322,28 @@ func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, erro
 	}
 
 	return &res, nil
+}
+
+// adapted from https://go-review.googlesource.com/c/oauth2/+/463979/9/pkce.go#64
+type PKCEParams struct {
+	Challenge       string
+	ChallengeMethod string
+	Verifier        string
+}
+
+func generatePKCEParams() (*PKCEParams, error) {
+	data := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, data); err != nil {
+		return nil, err
+	}
+
+	// RawURLEncoding since "code challenge can only contain alphanumeric characters, hyphens, periods, underscores and tildes"
+	verifier := base64.RawURLEncoding.EncodeToString(data)
+	sha := sha256.Sum256([]byte(verifier))
+	challenge := base64.RawURLEncoding.EncodeToString(sha[:])
+	return &PKCEParams{
+		Challenge:       challenge,
+		ChallengeMethod: "S256",
+		Verifier:        verifier,
+	}, nil
 }
