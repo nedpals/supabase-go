@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/go-querystring/query"
@@ -199,6 +200,8 @@ func (a *Auth) SignInWithProvider(opts ProviderSignInOptions) (*ProviderSignInDe
 	if err != nil {
 		return nil, err
 	}
+
+	params.Set("scopes", strings.Join(opts.Scopes, " "))
 
 	if opts.FlowType == PKCE {
 		p, err := generatePKCEParams()
