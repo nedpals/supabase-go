@@ -8,9 +8,17 @@ go get github.com/nedpals/supabase-go
 ```
 
 ## Usage
+
+Replace the `<SUPABASE-URL>` and `<SUPABASE-URL>` placeholders with values from `https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api`
+
 ### Authenticate
 ```go
-import supa "github.com/nedpals/supabase-go"
+package main 
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+    "context"
+)
 
 func main() {
   supabaseUrl := "<SUPABASE-URL>"
@@ -32,7 +40,12 @@ func main() {
 
 ### Sign-In
 ```go
-import supa "github.com/nedpals/supabase-go"
+package main 
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+    "context"
+)
 
 func main() {
   supabaseUrl := "<SUPABASE-URL>"
@@ -54,7 +67,11 @@ func main() {
 
 ### Insert
 ```go
-import supa "github.com/nedpals/supabase-go"
+package main 
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+)
 
 type Country struct {
   ID      int    `json:"id"`
@@ -85,7 +102,11 @@ func main() {
 
 ### Select
 ```go
-import supa "github.com/nedpals/supabase-go"
+package main 
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+)
 
 func main() {
   supabaseUrl := "<SUPABASE-URL>"
@@ -104,7 +125,11 @@ func main() {
 
 ### Update
 ```go
-import supa "github.com/nedpals/supabase-go"
+package main 
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+)
 
 type Country struct {
   Name    string `json:"name"`
@@ -133,7 +158,11 @@ func main() {
 
 ### Delete
 ```go
-import supa "github.com/nedpals/supabase-go"
+package main 
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+)
 
 func main() {
   supabaseUrl := "<SUPABASE-URL>"
