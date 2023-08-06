@@ -448,6 +448,7 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 
 	reqURL := fmt.Sprintf("%s/%s/object/list/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
 	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
+	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		panic(err)
 	}
