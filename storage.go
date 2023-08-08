@@ -244,7 +244,7 @@ const (
 	defaultLimit			= 100
 	defaultOffset			= 0
 	defaultFileCacheControl	= "3600"
-	defaultFileContent		= "text/pain;charset=UTF-8"
+	defaultFileContent		= "text/plain;charset=UTF-8"
 	defaultFileUpsert		= false
 	defaultSortColumn		= "name"
 	defaultSortOrder		= "asc"
