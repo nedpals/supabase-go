@@ -413,12 +413,16 @@ func (f *file) Remove(filePaths []string) FileResponse {
 		panic(err)
 	}
 
-	var response FileResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		panic(err)
+	if res.StatusCode != 200 {
+		var response FileResponse
+		if err := json.Unmarshal(body, &response); err != nil {
+			panic(err)
+		}
+
+		return response
 	}
 
-	return response
+	return FileResponse{}
 }
 
 // List list all file object
