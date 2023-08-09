@@ -244,7 +244,7 @@ const (
 	defaultLimit			= 100
 	defaultOffset			= 0
 	defaultFileCacheControl	= "3600"
-	defaultFileContent		= "text/pain;charset=UTF-8"
+	defaultFileContent		= "text/plain;charset=UTF-8"
 	defaultFileUpsert		= false
 	defaultSortColumn		= "name"
 	defaultSortOrder		= "asc"
@@ -389,17 +389,19 @@ func (f *file) GetPublicUrl(filePath string) SignedUrlResponse {
 // Remove deletes a file object
 func (f *file) Remove(filePaths []string) FileResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
-		"prefixex":  filePaths,
+		"prefixes":  filePaths,
 	})
 
 	reqURL := fmt.Sprintf("%s/%s/object/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
-	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
+	req, err := http.NewRequest(http.MethodDelete, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
 	}
 
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 
+	req.Header.Set("Content-Type", "application/json")
+	
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -411,12 +413,16 @@ func (f *file) Remove(filePaths []string) FileResponse {
 		panic(err)
 	}
 
-	var response FileResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		panic(err)
+	if res.StatusCode != 200 {
+		var response FileResponse
+		if err := json.Unmarshal(body, &response); err != nil {
+			panic(err)
+		}
+
+		return response
 	}
 
-	return response
+	return FileResponse{}
 }
 
 // List list all file object
