@@ -400,7 +400,7 @@ func (f *file) Remove(filePaths []string) FileResponse {
 
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 
-	req.Headers.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 	
 	client := &http.Client{}
 	res, err := client.Do(req)
