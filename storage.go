@@ -23,22 +23,21 @@ type bucket struct {
 	Name string `json:"name"`
 }
 type bucketResponse struct {
-	Id 	 string	`json:"id"`
-	Name string `json:"name"`
-	Owner string	`json:"owner"`
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Owner      string `json:"owner"`
 	Created_at string `json:"created_at"`
 	Updated_at string `json:"updated_at"`
 }
 type bucketMessage struct {
-	Message 	 string	`json:"message"`
+	Message string `json:"message"`
 }
 
 type bucketOption struct {
-	Id  	string 	`json:"id"`
-	Name 	string 	`json:"name"`
-	Public 	bool 	`json:"public"`
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Public bool   `json:"public"`
 }
-
 
 type storageError struct {
 	Err     string `json:"error"`
@@ -46,7 +45,6 @@ type storageError struct {
 }
 
 var ErrNotFound = errors.New("file not found")
-
 
 // CreateBucket creates a new storage bucket
 // @param: option:  a bucketOption with the name and id of the bucket you want to create
@@ -114,8 +112,8 @@ func (s *Storage) ListBuckets(ctx context.Context) (*[]bucketResponse, error) {
 }
 
 // EmptyBucket  empties the object of a bucket by id
-// @param id:  the id of the bucket
-// @returns bucketMessage: a successful response message or failed 
+// @param: id:  the id of the bucket
+// @returns bucketMessage: a successful response message or failed
 func (s *Storage) EmptyBucket(ctx context.Context, id string) (*bucketMessage, error) {
 	// reqBody, _ := json.Marshal()
 	reqURL := fmt.Sprintf("%s/%s/bucket/%s/empty", s.client.BaseURL, StorageEndpoint, id)
@@ -136,9 +134,9 @@ func (s *Storage) EmptyBucket(ctx context.Context, id string) (*bucketMessage, e
 }
 
 // UpdateBucket updates a bucket by its id
-// @param id:  the id of the bucket
-// @param option:  the options to be updated
-// @returns bucketMessage: a successful response message or failed 
+// @param: id:  the id of the bucket
+// @param: option:  the options to be updated
+// @returns bucketMessage: a successful response message or failed
 func (s *Storage) UpdateBucket(ctx context.Context, id string, option bucketOption) (*bucketMessage, error) {
 	reqBody, _ := json.Marshal(option)
 	reqURL := fmt.Sprintf("%s/%s/bucket/%s", s.client.BaseURL, StorageEndpoint, id)
@@ -159,8 +157,8 @@ func (s *Storage) UpdateBucket(ctx context.Context, id string, option bucketOpti
 }
 
 // DeleteBucket deletes a bucket by its id, a bucket can't be deleted except emptied
-// @param id:  the id of the bucket
-// @returns bucketMessage: a successful response message or failed 
+// @param: id:  the id of the bucket
+// @returns bucketMessage: a successful response message or failed
 func (s *Storage) DeleteBucket(ctx context.Context, id string) (*bucketResponse, error) {
 	// reqBody, _ := json.Marshal()
 	reqURL := fmt.Sprintf("%s/%s/bucket/%s", s.client.BaseURL, StorageEndpoint, id)
@@ -180,74 +178,74 @@ func (s *Storage) DeleteBucket(ctx context.Context, id string) (*bucketResponse,
 	return &res, nil
 }
 
-
 func (s *Storage) From(bucketId string) *file {
 	return &file{BucketId: bucketId, storage: s}
 }
 
 // Storage Objects methods
 
-type file struct{
+type file struct {
 	BucketId string
 	storage  *Storage
 }
 
 type SortBy struct {
-	Column 	string  `json:"column"`
-	Order 	string  `json:"order"`
+	Column string `json:"column"`
+	Order  string `json:"order"`
 }
 
 type FileResponse struct {
-	Key 	string  `json:"key"`
-	Message string  `json:"message"`
+	Key     string `json:"key"`
+	Message string `json:"message"`
 }
 
 type FileErrorResponse struct {
-	Status 	    string  `json:"statusCode"`
-	ShortError 	string  `json:"error"`
-	Message     string  `json:"message"`
+	Status     string `json:"statusCode"`
+	ShortError string `json:"error"`
+	Message    string `json:"message"`
 }
+
 func (err *FileErrorResponse) Error() string {
 	return err.ShortError + ": " + err.Message
 }
 
 type FileSearchOptions struct {
-	Limit     int    	`json:"limit"`
-	Offset    int    	`json:"offset"`
-	SortBy    SortBy    `json:"sortBy"`
-} 
+	Limit  int    `json:"limit"`
+	Offset int    `json:"offset"`
+	SortBy SortBy `json:"sortBy"`
+}
 
 type FileObject struct {
-	Name			string		`json:"name"`
-	BucketId		string		`json:"bucket_id"`
-	Owner			string		`json:"owner"`
-	Id				string		`json:"id"`
-	UpdatedAt		string		`json:"updated_at"`
-	CreatedAt		string		`json:"created_at"`
-	LastAccessedAt	string		`json:"last_accessed_at"`
-	Metadata		interface{} `json:"metadata"`
-	Buckets			bucket		`json:"buckets"`
+	Name           string      `json:"name"`
+	BucketId       string      `json:"bucket_id"`
+	Owner          string      `json:"owner"`
+	Id             string      `json:"id"`
+	UpdatedAt      string      `json:"updated_at"`
+	CreatedAt      string      `json:"created_at"`
+	LastAccessedAt string      `json:"last_accessed_at"`
+	Metadata       interface{} `json:"metadata"`
+	Buckets        bucket      `json:"buckets"`
 }
 
 type ListFileRequest struct {
-	Limit  	int  	`json:"limit"`
-	Offset  int  	`json:"offset"`
-	SortBy  SortBy  `json:"sortBy"`
-	Prefix  string  `json:"prefix"`
+	Limit  int    `json:"limit"`
+	Offset int    `json:"offset"`
+	SortBy SortBy `json:"sortBy"`
+	Prefix string `json:"prefix"`
 }
 
 type SignedUrlResponse struct {
-	SignedUrl  string  `json:"signedURL"`
+	SignedUrl string `json:"signedURL"`
 }
 
 const (
-	defaultLimit			= 100
-	defaultOffset			= 0
-	defaultFileCacheControl	= "3600"
-	defaultFileContent		= "text/plain;charset=UTF-8"
-	defaultFileUpsert		= false
-	defaultSortColumn		= "name"
-	defaultSortOrder		= "asc"
+	defaultLimit            = 100
+	defaultOffset           = 0
+	defaultFileCacheControl = "3600"
+	defaultFileContent      = "text/plain;charset=UTF-8"
+	defaultFileUpsert       = false
+	defaultSortColumn       = "name"
+	defaultSortOrder        = "asc"
 )
 
 func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResponse {
@@ -257,9 +255,9 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResp
 
 	var (
 		method string
-	 	req *http.Request
-		res *http.Response
-		err error
+		req    *http.Request
+		res    *http.Response
+		err    error
 	)
 
 	if update {
@@ -313,8 +311,8 @@ func (f *file) Upload(path string, data io.Reader) FileResponse {
 // Move moves a file object
 func (f *file) Move(fromPath string, toPath string) FileResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
-		"bucketId":	f.BucketId,
-		"sourceKey": fromPath,
+		"bucketId":      f.BucketId,
+		"sourceKey":     fromPath,
 		"destintionKey": toPath,
 	})
 
@@ -348,7 +346,7 @@ func (f *file) Move(fromPath string, toPath string) FileResponse {
 // CreatSignedUrl create a signed url for a file object
 func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
-		    "expiresIn":  expiresIn,
+		"expiresIn": expiresIn,
 	})
 
 	reqURL := fmt.Sprintf("%s/%s/object/sign/%s/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId, filePath)
@@ -374,7 +372,7 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 	if err := json.Unmarshal(body, &response); err != nil {
 		panic(err)
 	}
-	response.SignedUrl = f.storage.client.BaseURL+response.SignedUrl
+	response.SignedUrl = f.storage.client.BaseURL + response.SignedUrl
 
 	return response
 }
@@ -389,7 +387,7 @@ func (f *file) GetPublicUrl(filePath string) SignedUrlResponse {
 // Remove deletes a file object
 func (f *file) Remove(filePaths []string) FileResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
-		"prefixes":  filePaths,
+		"prefixes": filePaths,
 	})
 
 	reqURL := fmt.Sprintf("%s/%s/object/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
@@ -401,7 +399,7 @@ func (f *file) Remove(filePaths []string) FileResponse {
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -441,11 +439,11 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 	}
 
 	_body := ListFileRequest{
-		Limit: options.Limit,
+		Limit:  options.Limit,
 		Offset: options.Offset,
 		SortBy: SortBy{
 			Column: options.SortBy.Column,
-			Order: options.SortBy.Order,
+			Order:  options.SortBy.Order,
 		},
 		Prefix: queryPath,
 	}
@@ -459,7 +457,7 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 		panic(err)
 	}
 
-    injectAuthorizationHeader(req, f.storage.client.apiKey)
+	injectAuthorizationHeader(req, f.storage.client.apiKey)
 
 	client := &http.Client{}
 	res, err := client.Do(req)
@@ -483,8 +481,8 @@ func (f *file) List(queryPath string, options FileSearchOptions) []FileObject {
 // Copy copies a file object
 func (f *file) Copy(fromPath, toPath string) FileResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
-		"bucketId":	f.BucketId,
-		"sourceKey": fromPath,
+		"bucketId":      f.BucketId,
+		"sourceKey":     fromPath,
 		"destintionKey": toPath,
 	})
 
@@ -522,7 +520,7 @@ func (f *file) Download(filePath string) ([]byte, error) {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 
 	client := &http.Client{}
@@ -556,4 +554,3 @@ func (f *file) Download(filePath string) ([]byte, error) {
 func removeEmptyFolder(filePath string) string {
 	return regexp.MustCompile(`\/\/`).ReplaceAllString(filePath, "/")
 }
-
