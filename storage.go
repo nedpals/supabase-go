@@ -33,7 +33,7 @@ type bucketMessage struct {
 	Message string `json:"message"`
 }
 
-type bucketOption struct {
+type BucketOption struct {
 	Id     string `json:"id"`
 	Name   string `json:"name"`
 	Public bool   `json:"public"`
@@ -49,7 +49,7 @@ var ErrNotFound = errors.New("file not found")
 // CreateBucket creates a new storage bucket
 // @param: option:  a bucketOption with the name and id of the bucket you want to create
 // @returns: bucket: a response with the details of the bucket of the bucket created
-func (s *Storage) CreateBucket(ctx context.Context, option bucketOption) (*bucket, error) {
+func (s *Storage) CreateBucket(ctx context.Context, option BucketOption) (*bucket, error) {
 	reqBody, _ := json.Marshal(option)
 	reqURL := fmt.Sprintf("%s/%s/bucket", s.client.BaseURL, StorageEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
