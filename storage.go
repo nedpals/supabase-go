@@ -137,7 +137,7 @@ func (s *Storage) EmptyBucket(ctx context.Context, id string) (*bucketMessage, e
 // @param: id:  the id of the bucket
 // @param: option:  the options to be updated
 // @returns bucketMessage: a successful response message or failed
-func (s *Storage) UpdateBucket(ctx context.Context, id string, option bucketOption) (*bucketMessage, error) {
+func (s *Storage) UpdateBucket(ctx context.Context, id string, option BucketOption) (*bucketMessage, error) {
 	reqBody, _ := json.Marshal(option)
 	reqURL := fmt.Sprintf("%s/%s/bucket/%s", s.client.BaseURL, StorageEndpoint, id)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, reqURL, bytes.NewBuffer(reqBody))
