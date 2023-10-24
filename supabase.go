@@ -12,6 +12,7 @@ import (
 
 const (
 	AuthEndpoint    = "auth/v1"
+	AdminEndpoint   = "auth/v1/admin"
 	RestEndpoint    = "rest/v1"
 	StorageEndpoint = "storage/v1"
 )
@@ -21,6 +22,7 @@ type Client struct {
 	// apiKey can be a client API key or a service key
 	apiKey     string
 	HTTPClient *http.Client
+	Admin      *Admin
 	Auth       *Auth
 	Storage    *Storage
 	DB         *postgrest.Client
@@ -44,6 +46,7 @@ func CreateClient(baseURL string, supabaseKey string, debug ...bool) *Client {
 	client := &Client{
 		BaseURL: baseURL,
 		apiKey:  supabaseKey,
+		Admin:   &Admin{},
 		Auth:    &Auth{},
 		Storage: &Storage{},
 		HTTPClient: &http.Client{
@@ -61,6 +64,8 @@ func CreateClient(baseURL string, supabaseKey string, debug ...bool) *Client {
 			},
 		),
 	}
+	client.Admin.client = client
+	client.Admin.serviceKey = supabaseKey
 	client.Auth.client = client
 	client.Storage.client = client
 	return client
