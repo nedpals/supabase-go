@@ -86,6 +86,24 @@ type AdminUserParams struct {
 	BanDuration  string  `json:"ban_duration"`
 }
 
+type GenerateLinkParams struct {
+	Type       string                 `json:"type"`
+	Email      string                 `json:"email"`
+	NewEmail   string                 `json:"new_email"`
+	Password   string                 `json:"password"`
+	Data       map[string]interface{} `json:"data"`
+	RedirectTo string                 `json:"redirect_to"`
+}
+
+type GenerateLinkResponse struct {
+	AdminUser
+	ActionLink       string `json:"action_link"`
+	EmailOtp         string `json:"email_otp"`
+	HashedToken      string `json:"hashed_token"`
+	VerificationType string `json:"verification_type"`
+	RedirectTo       string `json:"redirect_to"`
+}
+
 // Retrieve the user
 func (a *Admin) GetUser(ctx context.Context, userID string) (*AdminUser, error) {
 	reqURL := fmt.Sprintf("%s/%s/users/%s", a.client.BaseURL, AdminEndpoint, userID)
@@ -132,6 +150,24 @@ func (a *Admin) UpdateUser(ctx context.Context, userID string, params AdminUserP
 
 	injectAuthorizationHeader(req, a.serviceKey)
 	res := AdminUser{}
+	if err := a.client.sendRequest(req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Update a user
+func (a *Admin) GenerateLink(ctx context.Context, params GenerateLinkParams) (*GenerateLinkResponse, error) {
+	reqBody, _ := json.Marshal(params)
+	reqURL := fmt.Sprintf("%s/%s/generate_link", a.client.BaseURL, AdminEndpoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	injectAuthorizationHeader(req, a.serviceKey)
+	res := GenerateLinkResponse{}
 	if err := a.client.sendRequest(req, &res); err != nil {
 		return nil, err
 	}
