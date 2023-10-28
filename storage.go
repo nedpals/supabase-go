@@ -486,7 +486,7 @@ func (f *file) Copy(fromPath, toPath string) FileResponse {
 		"destintionKey": toPath,
 	})
 
-	reqURL := fmt.Sprintf("%s/%s/object/copy", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
+	reqURL := fmt.Sprintf("%s/%s/object/copy/%s", f.storage.client.BaseURL, StorageEndpoint, f.BucketId)
 	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(_json))
 	if err != nil {
 		panic(err)
