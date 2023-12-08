@@ -242,13 +242,17 @@ const (
 	defaultLimit            = 100
 	defaultOffset           = 0
 	defaultFileCacheControl = "3600"
-	defaultFileContent      = "text/plain;charset=UTF-8"
+	defaultContentType      = "text/plain;charset=UTF-8"
 	defaultFileUpsert       = false
 	defaultSortColumn       = "name"
 	defaultSortOrder        = "asc"
 )
 
 func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResponse {
+	return f.UploadOrUpdateWithContentType(path, defaultContentType, data, update)
+}
+
+func (f *file) UploadOrUpdateWithContentType(path, contentType string, data io.Reader, update bool) FileResponse {
 	body := bufio.NewReader(data)
 	_path := removeEmptyFolder(f.BucketId + "/" + path)
 	client := &http.Client{}
@@ -274,11 +278,8 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResp
 
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 	req.Header.Set("cache-control", defaultFileCacheControl)
-	req.Header.Set("content-type", defaultFileContent)
+	req.Header.Set("content-type", contentType)
 	req.Header.Set("x-upsert", strconv.FormatBool(defaultFileUpsert))
-	if !update {
-		req.Header.Set("content-type", defaultFileContent)
-	}
 
 	res, err = client.Do(req)
 	if err != nil {
