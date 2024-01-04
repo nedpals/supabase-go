@@ -3,6 +3,7 @@
 Unofficial [Supabase](https://supabase.io) client for Go. It is an amalgamation of all the libraries similar to the [official Supabase client](https://supabase.io/docs/reference/javascript/supabase-client).
 
 ## Installation
+
 ```
 go get github.com/nedpals/supabase-go
 ```
@@ -12,8 +13,9 @@ go get github.com/nedpals/supabase-go
 Replace the `<SUPABASE-URL>` and `<SUPABASE-URL>` placeholders with values from `https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api`
 
 ### Authenticate
+
 ```go
-package main 
+package main
 import (
     supa "github.com/nedpals/supabase-go"
     "fmt"
@@ -39,8 +41,9 @@ func main() {
 ```
 
 ### Sign-In
+
 ```go
-package main 
+package main
 import (
     supa "github.com/nedpals/supabase-go"
     "fmt"
@@ -66,8 +69,9 @@ func main() {
 ```
 
 ### Insert
+
 ```go
-package main 
+package main
 import (
     supa "github.com/nedpals/supabase-go"
     "fmt"
@@ -101,8 +105,9 @@ func main() {
 ```
 
 ### Select
+
 ```go
-package main 
+package main
 import (
     supa "github.com/nedpals/supabase-go"
     "fmt"
@@ -124,8 +129,9 @@ func main() {
 ```
 
 ### Update
+
 ```go
-package main 
+package main
 import (
     supa "github.com/nedpals/supabase-go"
     "fmt"
@@ -157,8 +163,9 @@ func main() {
 ```
 
 ### Delete
+
 ```go
-package main 
+package main
 import (
     supa "github.com/nedpals/supabase-go"
     "fmt"
@@ -179,7 +186,41 @@ func main() {
 }
 ```
 
+### Invite user by email
+
+```go
+package main
+import (
+    supa "github.com/nedpals/supabase-go"
+    "fmt"
+    "context"
+)
+
+func main() {
+  supabaseUrl := "<SUPABASE-URL>"
+  supabaseKey := "<SUPABASE-KEY>"
+  supabase := supa.CreateClient(supabaseUrl, supabaseKey)
+
+  ctx := context.Background()
+  user, err := supabase.Auth.InviteUserByEmail(ctx, email)
+  if err != nil {
+    panic(err)
+  }
+
+  // or if you want to setup some metadata
+  data := map[string]interface{}{ "invitedBy": "someone" }
+  redirectTo := "https://your_very_successful_app.com/signup"
+  user, err = supabase.Auth.InviteUserByEmailWithData(ctx, email, data, redirectTo)
+  if err != nil {
+    panic(err)
+  }
+
+  fmt.Println(user)
+}
+```
+
 ## Roadmap
+
 - [x] Auth support (1)
 - [x] DB support (2)
 - [ ] Realtime
@@ -192,10 +233,13 @@ func main() {
 I just implemented features which I actually needed for my project for now. If you like to implement these features, feel free to submit a pull request as stated in the [Contributing](#contributing) section below.
 
 ## Design Goals
+
 It tries to mimick as much as possible the official Javascript client library in terms of ease-of-use and in setup process.
 
 # Contributing
+
 ## Submitting a pull request
+
 - Fork it (https://github.com/nedpals/supabase-go/fork)
 - Create your feature branch (git checkout -b my-new-feature)
 - Commit your changes (git commit -am 'Add some feature')
@@ -203,4 +247,5 @@ It tries to mimick as much as possible the official Javascript client library in
 - Create a new Pull Request
 
 # Contributors
+
 - [nedpals](https://github.com/nedpals) - creator and maintainer
