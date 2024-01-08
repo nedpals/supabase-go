@@ -308,9 +308,18 @@ func (a *Auth) SignOut(ctx context.Context, userToken string) error {
 	return nil
 }
 
-// InviteUserByEmail sends an invite link to the given email. Returns a user.
-func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, error) {
-	reqBody, _ := json.Marshal(map[string]string{"email": email})
+// InviteUserByEmailWithOpts sends an invite link to the given email with metadata. Returns a user.
+func (a *Auth) InviteUserByEmailWithData(ctx context.Context, email string, data map[string]interface{}, redirectTo string) (*User, error) {
+	params := map[string]interface{}{"email": email}
+	if data != nil {
+		params["data"] = data
+	}
+
+	if redirectTo != "" {
+		params["redirectTo"] = redirectTo
+	}
+
+	reqBody, _ := json.Marshal(params)
 	reqURL := fmt.Sprintf("%s/%s/invite", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
@@ -325,6 +334,11 @@ func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, erro
 	}
 
 	return &res, nil
+}
+
+// InviteUserByEmail sends an invite link to the given email. Returns a user.
+func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, error) {
+	return a.InviteUserByEmailWithData(ctx, email, nil, "")
 }
 
 // adapted from https://go-review.googlesource.com/c/oauth2/+/463979/9/pkce.go#64
