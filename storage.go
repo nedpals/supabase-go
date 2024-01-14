@@ -248,7 +248,30 @@ const (
 	defaultSortOrder        = "asc"
 )
 
-func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResponse {
+type FileUploadOptions struct {
+	CacheControl string
+	ContentType  string
+	Upsert       bool
+}
+
+func (f *file) UploadOrUpdate(path string, data io.Reader, update bool, opts *FileUploadOptions) FileResponse {
+	// use default options, then override with whatever is passed in opts
+	mergedOpts := FileUploadOptions{
+		CacheControl: defaultFileCacheControl,
+		ContentType:  defaultFileContent,
+		Upsert:       defaultFileUpsert,
+	}
+
+	if opts != nil {
+		if opts.CacheControl != "" {
+			mergedOpts.CacheControl = opts.CacheControl
+		}
+		if opts.ContentType != "" {
+			mergedOpts.ContentType = opts.ContentType
+		}
+		mergedOpts.Upsert = opts.Upsert
+	}
+
 	body := bufio.NewReader(data)
 	_path := removeEmptyFolder(f.BucketId + "/" + path)
 	client := &http.Client{}
@@ -273,9 +296,9 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResp
 	}
 
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
-	req.Header.Set("cache-control", defaultFileCacheControl)
-	req.Header.Set("content-type", defaultFileContent)
-	req.Header.Set("x-upsert", strconv.FormatBool(defaultFileUpsert))
+	req.Header.Set("cache-control", mergedOpts.CacheControl)
+	req.Header.Set("content-type", mergedOpts.ContentType)
+	req.Header.Set("x-upsert", strconv.FormatBool(mergedOpts.Upsert))
 	if !update {
 		req.Header.Set("content-type", defaultFileContent)
 	}
@@ -299,13 +322,13 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool) FileResp
 }
 
 // Update updates a file object in a storage bucket
-func (f *file) Update(path string, data io.Reader) FileResponse {
-	return f.UploadOrUpdate(path, data, true)
+func (f *file) Update(path string, data io.Reader, opts *FileUploadOptions) FileResponse {
+	return f.UploadOrUpdate(path, data, true, opts)
 }
 
 // Upload uploads a file object to a storage bucket
-func (f *file) Upload(path string, data io.Reader) FileResponse {
-	return f.UploadOrUpdate(path, data, false)
+func (f *file) Upload(path string, data io.Reader, opts *FileUploadOptions) FileResponse {
+	return f.UploadOrUpdate(path, data, false, opts)
 }
 
 // Move moves a file object
