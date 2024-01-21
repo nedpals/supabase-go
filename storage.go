@@ -366,8 +366,8 @@ func (f *file) Move(fromPath string, toPath string) FileResponse {
 	return response
 }
 
-// CreatSignedUrl create a signed url for a file object
-func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse {
+// CreateSignedUrl create a signed url for a file object
+func (f *file) CreateSignedUrl(filePath string, expiresIn int) SignedUrlResponse {
 	_json, _ := json.Marshal(map[string]interface{}{
 		"expiresIn": expiresIn,
 	})
@@ -378,6 +378,7 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 		panic(err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 
 	client := &http.Client{}
@@ -395,7 +396,7 @@ func (f *file) CreatSignedUrl(filePath string, expiresIn int) SignedUrlResponse 
 	if err := json.Unmarshal(body, &response); err != nil {
 		panic(err)
 	}
-	response.SignedUrl = f.storage.client.BaseURL + response.SignedUrl
+	response.SignedUrl = f.storage.client.BaseURL + "/" + StorageEndpoint + response.SignedUrl
 
 	return response
 }
