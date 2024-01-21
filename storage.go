@@ -396,7 +396,7 @@ func (f *file) CreateSignedUrl(filePath string, expiresIn int) SignedUrlResponse
 	if err := json.Unmarshal(body, &response); err != nil {
 		panic(err)
 	}
-	response.SignedUrl = f.storage.client.BaseURL + response.SignedUrl
+	response.SignedUrl = f.storage.client.BaseURL + "/" + StorageEndpoint + response.SignedUrl
 
 	return response
 }
