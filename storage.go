@@ -243,6 +243,7 @@ const (
 	defaultOffset           = 0
 	defaultFileCacheControl = "3600"
 	defaultFileContent      = "text/plain;charset=UTF-8"
+	defaultMimeType         = "text/plain"
 	defaultFileUpsert       = false
 	defaultSortColumn       = "name"
 	defaultSortOrder        = "asc"
@@ -251,6 +252,7 @@ const (
 type FileUploadOptions struct {
 	CacheControl string
 	ContentType  string
+	MimeType     string
 	Upsert       bool
 }
 
@@ -260,6 +262,7 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool, opts *Fi
 		CacheControl: defaultFileCacheControl,
 		ContentType:  defaultFileContent,
 		Upsert:       defaultFileUpsert,
+		MimeType:     defaultMimeType,
 	}
 
 	if opts != nil {
@@ -269,6 +272,10 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool, opts *Fi
 		if opts.ContentType != "" {
 			mergedOpts.ContentType = opts.ContentType
 		}
+		if opts.MimeType != "" {
+			mergedOpts.MimeType = opts.MimeType
+		}
+
 		mergedOpts.Upsert = opts.Upsert
 	}
 
@@ -298,6 +305,7 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool, opts *Fi
 	injectAuthorizationHeader(req, f.storage.client.apiKey)
 	req.Header.Set("cache-control", mergedOpts.CacheControl)
 	req.Header.Set("content-type", mergedOpts.ContentType)
+	req.Header.Set("mime-type", mergedOpts.MimeType)
 	req.Header.Set("x-upsert", strconv.FormatBool(mergedOpts.Upsert))
 	if !update {
 		req.Header.Set("content-type", defaultFileContent)
