@@ -299,9 +299,6 @@ func (f *file) UploadOrUpdate(path string, data io.Reader, update bool, opts *Fi
 	req.Header.Set("cache-control", mergedOpts.CacheControl)
 	req.Header.Set("content-type", mergedOpts.ContentType)
 	req.Header.Set("x-upsert", strconv.FormatBool(mergedOpts.Upsert))
-	if !update {
-		req.Header.Set("content-type", defaultFileContent)
-	}
 
 	res, err = client.Do(req)
 	if err != nil {
