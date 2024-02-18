@@ -10,7 +10,7 @@ go get github.com/nedpals/supabase-go
 
 ## Usage
 
-Replace the `<SUPABASE-URL>` and `<SUPABASE-URL>` placeholders with values from `https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api`
+Replace the `<SUPABASE-URL>` and `<SUPABASE-KEY>` placeholders with values from `https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api`
 
 ### Authenticate
 
