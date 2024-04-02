@@ -275,10 +275,15 @@ func (a *Auth) UpdateUser(ctx context.Context, userToken string, updateData map[
 	return &res, nil
 }
 
-// ResetPasswordForEmail sends a password recovery link to the given e-mail address.
-func (a *Auth) ResetPasswordForEmail(ctx context.Context, email string) error {
+// ResetPasswordForEmail sends a password recovery link to the given e-mail address, with a redirect URL
+func (a *Auth) ResetPasswordForEmailWithRedirectUrl(ctx context.Context, email string, redirectTo string) error {
 	reqBody, _ := json.Marshal(map[string]string{"email": email})
 	reqURL := fmt.Sprintf("%s/%s/recover", a.client.BaseURL, AuthEndpoint)
+
+	if redirectTo != "" {
+		reqURL += "?redirect_to=" + redirectTo
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -289,6 +294,11 @@ func (a *Auth) ResetPasswordForEmail(ctx context.Context, email string) error {
 	}
 
 	return nil
+}
+
+// ResetPasswordForEmail sends a password recovery link to the given e-mail address.
+func (a *Auth) ResetPasswordForEmail(ctx context.Context, email string) error {
+	return a.ResetPasswordForEmailWithRedirectUrl(ctx, email, "")
 }
 
 // SignOut revokes the users token and session.
