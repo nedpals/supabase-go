@@ -96,18 +96,18 @@ func (c *Client) sendCustomRequest(req *http.Request, successValue interface{}, 
 	}
 
 	defer res.Body.Close()
-	statusOK := res.StatusCode >= http.StatusOK && res.StatusCode < 300
+	statusOK := res.StatusCode >= http.StatusOK && res.StatusCode <= 300
 	if !statusOK {
 		if err = json.NewDecoder(res.Body).Decode(&errorValue); err == nil {
-			return true, nil
+			return true, nil // there is a custom error, but we couldn't read it
+		} else {
+			return true, err // there is a custom error, and we read it ok
 		}
-
-		return false, fmt.Errorf("unknown, status code: %d", res.StatusCode)
 	} else if res.StatusCode != http.StatusNoContent {
 		if err = json.NewDecoder(res.Body).Decode(&successValue); err != nil {
-			return false, err
+			return false, err // response status ok, but could not read the body
 		}
 	}
 
-	return false, nil
+	return false, nil // no errors
 }

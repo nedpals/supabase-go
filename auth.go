@@ -45,10 +45,15 @@ type User struct {
 	UpdatedAt          time.Time                 `json:"updated_at"`
 }
 
-// SignUp registers the user's email and password to the database.
-func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, error) {
+// SignUpWithRedirectUrl registers the user's email and password to the database, with a redirect URL
+func (a *Auth) SignUpWithRedirectUrl(ctx context.Context, credentials UserCredentials, redirectTo string) (*User, error) {
 	reqBody, _ := json.Marshal(credentials)
 	reqURL := fmt.Sprintf("%s/%s/signup", a.client.BaseURL, AuthEndpoint)
+
+	if redirectTo != "" {
+		reqURL += "?redirect_to=" + redirectTo
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
@@ -61,6 +66,11 @@ func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, 
 	}
 
 	return &res, nil
+}
+
+// SignUp registers the user's email and password to the database
+func (a *Auth) SignUp(ctx context.Context, credentials UserCredentials) (*User, error) {
+	return a.SignUpWithRedirectUrl(ctx, credentials, "")
 }
 
 type AuthenticatedDetails struct {
@@ -320,17 +330,18 @@ func (a *Auth) SignOut(ctx context.Context, userToken string) error {
 
 // InviteUserByEmailWithOpts sends an invite link to the given email with metadata. Returns a user.
 func (a *Auth) InviteUserByEmailWithData(ctx context.Context, email string, data map[string]interface{}, redirectTo string) (*User, error) {
+	reqURL := fmt.Sprintf("%s/%s/invite", a.client.BaseURL, AuthEndpoint)
+
+	if redirectTo != "" {
+		reqURL += "?redirect_to=" + redirectTo
+	}
+
 	params := map[string]interface{}{"email": email}
 	if data != nil {
 		params["data"] = data
 	}
 
-	if redirectTo != "" {
-		params["redirectTo"] = redirectTo
-	}
-
 	reqBody, _ := json.Marshal(params)
-	reqURL := fmt.Sprintf("%s/%s/invite", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
