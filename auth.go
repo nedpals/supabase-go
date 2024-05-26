@@ -341,6 +341,24 @@ func (a *Auth) InviteUserByEmail(ctx context.Context, email string) (*User, erro
 	return a.InviteUserByEmailWithData(ctx, email, nil, "")
 }
 
+func (a *Auth) OTP(ctx context.Context, request *OTPRequest) (*OTPResponse, error) {
+
+	reqBody, _ := json.Marshal(request)
+	reqURL := fmt.Sprintf("%s/%s/signup", a.client.BaseURL, AuthEndpoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	res := OTPResponse{}
+	if err := a.client.sendRequest(req, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 // adapted from https://go-review.googlesource.com/c/oauth2/+/463979/9/pkce.go#64
 type PKCEParams struct {
 	Challenge       string
