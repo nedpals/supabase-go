@@ -174,3 +174,17 @@ func (a *Admin) GenerateLink(ctx context.Context, params GenerateLinkParams) (*G
 
 	return &res, nil
 }
+
+// Delete a user
+func (a *Admin) Remove(ctx context.Context, userID string) (err error) {
+	reqURL := fmt.Sprintf("%s/%s/users/%s", a.client.BaseURL, AdminEndpoint, userID)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, reqURL, nil)
+	if err != nil {
+		return err
+	}
+	injectAuthorizationHeader(req, a.serviceKey)
+	if err := a.client.sendRequest(req, nil); err != nil {
+		return err
+	}
+	return
+}
