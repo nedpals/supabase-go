@@ -5,7 +5,7 @@ Unofficial [Supabase](https://supabase.io) client for Go. It is an amalgamation 
 ## Installation
 
 ```
-go get github.com/imdewan/supabase-go
+go get github.com/nedpals/supabase-go
 ```
 
 ## Usage
@@ -249,4 +249,3 @@ It tries to mimick as much as possible the official Javascript client library in
 # Contributors
 
 - [nedpals](https://github.com/nedpals) - creator and maintainer
-- Dewan Shakil
