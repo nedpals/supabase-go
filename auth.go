@@ -74,8 +74,8 @@ type AuthenticatedDetails struct {
 }
 
 type authenticationError struct {
-	Error            string `json:"error"`
-	ErrorDescription string `json:"error_description"`
+	Error            string `json:"error_code"`
+	ErrorDescription string `json:"msg"`
 }
 
 type exchangeError struct {
