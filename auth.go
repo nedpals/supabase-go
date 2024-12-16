@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/google/go-querystring/query"
 )
 
@@ -366,6 +367,80 @@ func generatePKCEParams() (*PKCEParams, error) {
 		ChallengeMethod: "S256",
 		Verifier:        verifier,
 	}, nil
+}
+
+// VerifyOtpCredentials is the interface for verifying OTPs.
+type VerifyOtpCredentials interface {
+	OtpType() string
+}
+
+// PhoneOtpType is the type of phone OTP.
+type PhoneOtpType string
+
+const (
+	PhoneOtpTypeSMS         PhoneOtpType = "sms"
+	PhoneOtpTypePhoneChange PhoneOtpType = "phone_change"
+)
+
+// VerifyPhoneOtpCredentials is the struct for verifying OTPs sent to a phone number.
+type VerifyPhoneOtpCredentials struct {
+	Phone      string       `mapstructure:"phone"`
+	Type       PhoneOtpType `mapstructure:"type"`
+	TokenHash  string       `mapstructure:"token_hash"`
+	Token      string       `mapstructure:"token"`
+	RedirectTo string       `mapstructure:"redirect_to,omitempty"`
+}
+
+func (c VerifyPhoneOtpCredentials) OtpType() string {
+	return string(c.Type)
+}
+
+// EmailOtpType is the type of email OTP.
+type EmailOtpType string
+
+const (
+	EmailOtpTypeEmail       EmailOtpType = "email"
+	EmailOtpTypeReceovery   EmailOtpType = "recovery"
+	EmailOtpTypeInvite      EmailOtpType = "invite"
+	EmailOtpTypeEmailChange EmailOtpType = "email_change"
+)
+
+// VerifyEmailOtpCredentials is the struct for verifying OTPs sent to an email address.
+type VerifyEmailOtpCredentials struct {
+	Email      string       `mapstructure:"email"`
+	Token      string       `mapstructure:"token"`
+	TokenHash  string       `mapstructure:"token_hash"`
+	Type       EmailOtpType `mapstructure:"type"`
+	RedirectTo string       `mapstructure:"redirect_to,omitempty"`
+}
+
+// OtpType returns the type of OTP.
+func (c VerifyEmailOtpCredentials) OtpType() string {
+	return string(c.Type)
+}
+
+// VerifyTokenHashOtpCredentials is the struct for verifying OTPs sent other than email or phone.
+type VerifyTokenHashOtpCredentials struct {
+	TokenHash  string `mapstructure:"token_hash"`
+	Type       string `mapstructure:"type"`
+	RedirectTo string `mapstructure:"redirect_to,omitempty"`
+}
+
+// OtpType returns the type of OTP.
+func (c VerifyTokenHashOtpCredentials) OtpType() string {
+	return c.Type
+}
+
+// MarshalVerifyOtpCredentials marshals the VerifyOtpCredentials into a JSON byte slice.
+func MarshalVerifyOtpCredentials(c VerifyOtpCredentials) ([]byte, error) {
+	result := map[string]interface{}{}
+
+	if err := mapstructure.Decode(c, &result); err != nil {
+		return nil, err
+	}
+
+	result["type"] = c.OtpType()
+	return json.Marshal(result)
 }
 
 // verify otp takes in a token hash and verify type, verifies the user and returns the the user if succeeded.
