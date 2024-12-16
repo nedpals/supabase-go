@@ -1,3 +1,5 @@
+> **This project is looking for a new home.**  See the [issue](https://github.com/nedpals/supabase-go/issues/67) for details.
+
 # supabase-go
 
 Unofficial [Supabase](https://supabase.io) client for Go. It is an amalgamation of all the libraries similar to the [official Supabase client](https://supabase.io/docs/reference/javascript/supabase-client).
