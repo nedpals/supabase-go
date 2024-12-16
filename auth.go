@@ -364,3 +364,25 @@ func generatePKCEParams() (*PKCEParams, error) {
 		Verifier:        verifier,
 	}, nil
 }
+
+// verify otp takes in a token hash and verify type, verifies the user and returns the the user if succeeded.
+func (a *Auth) VerifyOtp(ctx context.Context, credentials VerifyOtpCredentials) (*AuthenticatedDetails, error) {
+	reqBody, _ := json.Marshal(credentials)
+	reqURL := fmt.Sprintf("%s/%s/verify", a.client.BaseURL, AuthEndpoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	res := AuthenticatedDetails{}
+	errRes := authenticationError{}
+	hasCustomError, err := a.client.sendCustomRequest(req, &res, &errRes)
+	if err != nil {
+		return nil, err
+	} else if hasCustomError {
+		return nil, errors.New(fmt.Sprintf("%s: %s", errRes.Error, errRes.ErrorDescription))
+	}
+
+	return &res, nil
+}
