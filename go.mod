@@ -1,6 +1,6 @@
 module github.com/nedpals/supabase-go
 
-go 1.16
+go 1.22
 
 require (
 	github.com/go-viper/mapstructure/v2 v2.2.1
