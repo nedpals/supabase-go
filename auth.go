@@ -445,7 +445,10 @@ func MarshalVerifyOtpCredentials(c VerifyOtpCredentials) ([]byte, error) {
 
 // verify otp takes in a token hash and verify type, verifies the user and returns the the user if succeeded.
 func (a *Auth) VerifyOtp(ctx context.Context, credentials VerifyOtpCredentials) (*AuthenticatedDetails, error) {
-	reqBody, _ := json.Marshal(credentials)
+	reqBody, err := MarshalVerifyOtpCredentials(credentials)
+	if err != nil {
+		return nil, err
+	}
 	reqURL := fmt.Sprintf("%s/%s/verify", a.client.BaseURL, AuthEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewBuffer(reqBody))
 	if err != nil {
